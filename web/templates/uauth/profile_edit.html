@@ -1,0 +1,46 @@
+<div id="profileEditModal" class="profile-edit-modal-container hidden">
+    <div class="profile-edit-modal-box">
+
+        <h2 class="profile-edit-modal-title">프로필 편집</h2>
+
+        <!-- 프로필 이미지 (관리자 계정 위해 src 변경) -->
+        <div class="profile-edit-profile-image-wrapper">
+            <img
+                id="modalProfileImg"
+                src="{% if user.profile_image %}{{ user.profile_image.url }}{% else %}/static/images/default_profile.png{% endif %}"
+                class="profile-edit-profile-image"
+                alt="프로필 이미지"
+            />
+            <div class="profile-edit-edit-icon" id="editProfileImageBtn">✎</div>
+            <div class="profile-edit-delete-icon" id="deleteProfileImageBtn">×</div>
+
+            <!-- 실제 파일 업로드 input (숨김) -->
+            <input type="file" id="profileImgInput" accept=".jpg,.jpeg,.png,.gif" hidden />
+        </div>
+
+        <!-- 이메일 -->
+        <div class="profile-edit-form-group">
+            <label class="profile-edit-label">이메일</label>
+            <div class="profile-edit-form-value">
+                <div class="profile-edit-email-text">{{ user.email }}</div>
+                <p class="profile-edit-email-desc">이메일은 수정할 수 없습니다.</p>
+            </div>
+        </div>
+
+        <!-- 닉네임 -->
+        <div class="profile-edit-form-group">
+            <label class="profile-edit-label">닉네임</label>
+            <div class="profile-edit-form-value">
+                <input type="text" id="nicknameInput" class="profile-edit-input-box" value="{{ user.nickname }}" />
+                <span class="profile-edit-error-text" id="nicknameError">해당 닉네임은 형식에 맞지 않습니다.</span>
+            </div>
+        </div>
+
+        <!-- 버튼 -->
+        <div class="profile-edit-button-group">
+            <button class="profile-edit-btn-cancel close-modal" data-target="profileEditModal">닫기</button>
+            <button class="profile-edit-btn-submit" id="profileSaveBtn">수정</button>
+        </div>
+
+    </div>
+</div>

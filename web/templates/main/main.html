@@ -1,0 +1,131 @@
+{% extends 'layout/base.html' %}
+{% load static %}
+
+{% block content %}
+
+    <!-- 사이드바 -->
+    <aside class="sidebar" id="sidebar">
+        <img class='sidebar-logo' src="{% static 'images/small_logo.png'%}"/>
+    </aside>
+
+    <!-- 로그인 후 사이드바 -->
+    <aside class="sidebar-logged" id="sidebarLogged">
+        <!-- 사이드바 헤더 (로고) -->
+        <div class="sidebar-header">
+            <button class="logo-btn" id="toggleSidebar">
+                <img src="{% static 'images/small_logo.png'%}" alt="Logo" class="sidebar-logo-img" id="sidebarLogoImg"/>
+            </button>
+        </div>
+
+        <!-- 메뉴 영역 -->
+        <nav class="sidebar-menu">
+            <button class="menu-item" id="newChatBtn">
+                <img src="{% static 'images/new_chat_icon.png'%}" alt="새 채팅" class="menu-icon"/>
+                <span class="menu-text">새 채팅</span>
+            </button>
+            <button class="menu-item" id="galleryBtn">
+                <img src="{% static 'images/gallery_icon.png'%}" alt="갤러리" class="menu-icon"/>
+                <span class="menu-text">갤러리</span>
+            </button>
+            <button class="menu-item" id="hairdoBtn">
+                <img src="{% static 'images/hairdo_icon.png'%}" alt="헤어도감" class="menu-icon"/>
+                <span class="menu-text">헤어도감</span>
+            </button>
+            <button class="menu-item" id="chatHistoryBtn">
+                <img src="{% static 'images/chat_history_icon.png'%}" alt="채팅 기록" class="menu-icon"/>
+                <span class="menu-text">채팅 기록</span>
+            </button>
+        </nav>
+
+        <!-- 채팅 기록 영역 -->
+        <div class="chat-history-area" id="chatHistoryArea">
+        </div>
+
+        <!-- 하단 영역 -->
+        <div class="sidebar-footer">
+            <!-- 프로필 영역 -->
+            <div class="profile-area">
+                <img src="{% static 'images/default_profile.png'%}" alt="프로필" class="profile-img" id="profileImg"/>
+                <span class="profile-name">사용자</span>
+                <!-- 설정 버튼 -->
+                <button class="settings-btn" id="settingsBtn">
+                    <img src="{% static 'images/settings_icon.png'%}" alt="설정" class="settings-icon"/>
+                </button>
+            </div>
+
+            <!-- 로그아웃 링크 -->
+            <button class="logout-sidebar-btn" id="logoutSidebarBtn">로그아웃</button>
+
+            <!-- 설정 모달 -->
+            {% include 'uauth/settings_modal.html' %}
+            {% include 'uauth/profile_edit.html' %}
+        </div>
+
+        <!-- 사이드바 닫기 버튼 -->
+        <button class="close-sidebar-btn" id="closeSidebarBtn">
+            <img src="{% static 'images/close_icon.png'%}" alt="닫기" class="close-icon"/>
+        </button>
+    </aside>
+
+    <div class="main-container" id="mainContainer">
+        <!-- 헤더 -->
+        <header class="header" id="header">
+            <button class="login-btn" onclick="toggleModal()">
+                <img src="{% static 'images/login_icon.png'%}" alt="로그인" class="close-icon"/>
+                로그인
+            </button>
+        </header>
+
+        <!-- 메인 콘텐츠 -->
+        <main class="content">
+            <h1 class="greeting" id="greeting">안녕하세요</h1>
+
+            <!-- 채팅 메시지 영역 -->
+            <div class="chat-messages" id="chatMessages"></div>
+
+            <div class="input-area">
+                <div class="input-container">
+                    <!-- Add Icon 모달 -->
+                    {% include 'main/add_icon_modal.html' %}
+                    <div class="image-preview-container" id="imagePreviewContainer" style="display: none;">
+                        <img id="previewImage" class="preview-image" alt="선택된 이미지">
+                        <button type="button" class="remove-image-btn" id="removeImageBtn">×</button>
+                    </div>
+                    <div class="input-other-content">
+                        <img src="{% static 'images/add_icon.png' %}" class="add-icon" id="add-icon" alt="추가">
+                        <textarea class="input-field" id="messageInput"></textarea>
+                        <button class="send-btn" id="sendBtn" disabled>
+                            <img src="{% static 'images/send_icon.png' %}" class="send-icon" alt="전송">
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 헤어도감 -->
+    {% include 'pictorial_book/pictorial_book.html' %}
+
+    <!-- 로그인 모달 -->
+    {% include 'uauth/login_modal.html' %}
+
+    <!-- 로그아웃 확인 모달 -->
+    {% include 'uauth/logout_modal.html' %}
+    
+    <!-- 확인 모달 -->
+    {% include 'main/confirm_modal.html' %}
+
+    <!-- 비밀번호 수정 모달 -->
+    {% include 'uauth/password_modal.html' %}
+
+    <!-- 회원탈퇴 모달 -->
+    {% include 'uauth/withdraw_modal.html' %}
+
+    <!-- 채팅 삭제 확인 모달 -->
+    {% include 'main/chat_delete_modal.html' %}
+
+{% endblock content %}
+{% block script %}
+<script src="{% static 'js/main.js' %}"></script>
+<script src="{% static 'js/pictorial_book.js' %}"></script>
+{% endblock script %}
