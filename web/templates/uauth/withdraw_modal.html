@@ -1,0 +1,33 @@
+<!-- 회원탈퇴 모달 -->
+<div class="withdraw-modal-overlay" id="withdrawModal">
+    <div class="withdraw-modal-content">
+        <h2 class="withdraw-title">정말 탈퇴하시겠습니까?</h2>
+        
+        <p class="withdraw-warning">
+            탈퇴시 가입한 정보와 채팅 내역 등이 즉시 삭제됩니다.<br>
+            탈퇴하시려면 비밀번호를 정확히 입력해주세요.
+        </p>
+        
+        <div class="withdraw-input-group">
+            <input type="password" id="withdrawPassword" class="withdraw-input">
+        </div>
+        
+        <p class="withdraw-error" id="withdrawError">비밀번호가 올바르지 않습니다. 확인 후 다시 시도해주세요.</p>
+        
+        <div class="withdraw-buttons">
+            <button type="button" class="withdraw-btn cancel-btn" id="withdrawCancelBtn">취소</button>
+            <button type="button" class="withdraw-btn confirm-btn" id="withdrawConfirmBtn" disabled>탈퇴</button>
+        </div>
+    </div>
+</div>
+
+<!-- 회원탈퇴 완료 모달 -->
+<div class="withdraw-complete-modal-overlay" id="withdrawCompleteModal">
+    <div class="withdraw-complete-modal-content">
+        <h2 class="withdraw-complete-title">정상적으로 탈퇴되었습니다.</h2>
+        <p class="withdraw-complete-desc">그동안 이용해주셔서 감사합니다.</p>
+        <div class="withdraw-complete-buttons">
+            <button type="button" class="withdraw-complete-btn" id="withdrawCompleteBtn">확인</button>
+        </div>
+    </div>
+</div>

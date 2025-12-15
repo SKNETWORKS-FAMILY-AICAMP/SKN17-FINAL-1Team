@@ -1,0 +1,6 @@
+bind = '0.0.0.0:8000'
+workers = 3
+
+timeout = 600
+keepalive = 5
+graceful_timeout = 30

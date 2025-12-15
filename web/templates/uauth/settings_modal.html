@@ -1,0 +1,17 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/profile_edit.css' %}">
+
+<div class="settings-modal" id="settingsModal">
+    <button class="settings-modal-item" id="editProfileBtn">
+        <img src="{% static 'images/edit_icon.png'%}" alt="프로필 편집" class="settings-modal-icon"/>
+        <span>프로필 편집</span>
+    </button>
+    <button class="settings-modal-item" id="changePasswordBtn">
+        <img src="{% static 'images/password_icon.png'%}" alt="비밀번호 수정" class="settings-modal-icon"/>
+        <span>비밀번호 수정</span>
+    </button>
+    <button class="settings-modal-item logout" id="withdrawBtn">
+        <img src="{% static 'images/logout_icon.png'%}" alt="회원탈퇴" class="settings-modal-icon"/>
+        <span>회원탈퇴</span>
+    </button>
+</div>

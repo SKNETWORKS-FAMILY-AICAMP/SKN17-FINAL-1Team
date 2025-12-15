@@ -1,0 +1,147 @@
+{% extends 'layout/base.html' %}
+{% load static %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" href="{% static 'css/gallery.css' %}">
+<link rel="stylesheet" href="{% static 'css/pictorial_book.css' %}">
+{% endblock style %}
+
+{% block content %}
+<aside class="sidebar-logged" id="sidebarLogged">
+    <!-- 사이드바 헤더 (로고) -->
+    <div class="sidebar-header">
+        <button class="logo-btn" id="toggleSidebar">
+            <img src="{% static 'images/small_logo.png'%}" alt="Logo" class="sidebar-logo-img" id="sidebarLogoImg"/>
+        </button>
+    </div>
+
+    <!-- 메뉴 영역 -->
+    <nav class="sidebar-menu">
+        <button class="menu-item" id="newChatBtn">
+            <img src="{% static 'images/new_chat_icon.png'%}" alt="새 채팅" class="menu-icon"/>
+            <span class="menu-text">새 채팅</span>
+        </button>
+        <button class="menu-item" id="galleryBtn">
+            <img src="{% static 'images/gallery_icon.png'%}" alt="갤러리" class="menu-icon"/>
+            <span class="menu-text">갤러리</span>
+        </button>
+        <button class="menu-item" id="hairdoBtn">
+            <img src="{% static 'images/hairdo_icon.png'%}" alt="헤어도감" class="menu-icon"/>
+            <span class="menu-text">헤어도감</span>
+        </button>
+        <button class="menu-item" id="chatHistoryBtn">
+            <img src="{% static 'images/chat_history_icon.png'%}" alt="채팅 기록" class="menu-icon"/>
+            <span class="menu-text">채팅 기록</span>
+        </button>
+    </nav>
+
+    <!-- 채팅 기록 영역 -->
+    <div class="chat-history-area" id="chatHistoryArea">
+        <!-- 채팅 기록이 동적으로 추가됩니다 -->
+    </div>
+
+    <!-- 하단 영역 -->
+    <div class="sidebar-footer">
+        <!-- 프로필 영역 -->
+        <div class="profile-area">
+            <img src="{% static 'images/default_profile.png'%}" alt="프로필" class="profile-img" id="profileImg"/>
+            <span class="profile-name">사용자</span>
+            <!-- 설정 버튼 -->
+            <button class="settings-btn" id="settingsBtn">
+                <img src="{% static 'images/settings_icon.png'%}" alt="설정" class="settings-icon"/>
+            </button>
+        </div>
+
+        <!-- 로그아웃 링크 -->
+        <button class="logout-sidebar-btn" id="logoutSidebarBtn">로그아웃</button>
+
+        <!-- 설정 모달 -->
+        {% include 'uauth/settings_modal.html' %}
+
+    </div>
+
+    <!-- 사이드바 닫기 버튼 -->
+    <button class="close-sidebar-btn" id="closeSidebarBtn">
+        <img src="{% static 'images/close_icon.png'%}" alt="닫기" class="close-icon"/>
+    </button>
+</aside>
+
+<div id="main-container" class="main-container">
+    <!-- 메인 갤러리 페이지 -->
+  <div class="gallery-page">
+    <div class="gallery-main">
+        <header class="gallery-header">
+        <h1 class="gallery-title">갤러리</h1>
+        <p class="gallery-subtitle">생성된 이미지를 한 곳에서 모아볼 수 있는 공간입니다.</p>
+        </header>
+
+        <section class="gallery-section">
+        {% if image_files %}
+          <div class="gallery-grid">
+            {% for image in image_files %}
+                <div class="gallery-item">
+                    <div class="image-wrapper">
+                        <img
+                        src="{{ image.image_path.url }}"
+                        alt="갤러리 이미지 {{ forloop.counter }}"
+                        class="gallery-image"
+                        data-filename="{{ image.image_path }}"
+                        data-image-id="{{ image.image_id }}"
+                        crossorigin="anonymous"
+                        >
+
+                        <button class="image-menu-btn" type="button" aria-label="이미지 옵션 열기">
+                            <span class="image-menu-dot"></span>
+                            <span class="image-menu-dot"></span>
+                            <span class="image-menu-dot"></span>
+                        </button>
+
+                        <div class="image-menu" data-image-src="{% static 'images/'|add:image %}">
+                            <button type="button" class="image-menu-item save">이미지 저장</button>
+                            <button type="button" class="image-menu-item delete">이미지 삭제</button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+          </div>
+        {% else %}
+            <p class="gallery-empty">아직 저장된 이미지가 없습니다.</p>
+        {% endif %}
+        </section>
+    </div>
+  </div>
+</div>
+
+
+<!-- 헤어도감 -->
+{% include 'pictorial_book/pictorial_book.html' %}
+
+<!-- 사진 삭제 모달 -->
+{% include 'main/gallery_delete_modal.html' %}
+
+<!-- 채팅 삭제 모달 -->
+{% include 'main/chat_delete_modal.html' %}
+
+<!-- 로그아웃 확인 모달 -->
+{% include 'uauth/logout_modal.html' %}
+
+<!-- 확인 모달 -->
+{% include 'main/confirm_modal.html' %}
+
+<!-- 비밀번호 수정 모달 -->
+{% include 'uauth/password_modal.html' %}
+
+<!-- 회원탈퇴 모달 -->
+{% include 'uauth/withdraw_modal.html' %}
+
+<!-- 프로필 편집 모달 -->
+{% include 'uauth/profile_edit.html' %}
+
+{% endblock content %}
+
+{% block script %}
+<script src="{% static 'js/main.js' %}"></script>
+<script src="{% static 'js/gallery.js' %}"></script>
+<script src="{% static 'js/pictorial_book.js' %}"></script>
+{% endblock script %}

@@ -1,0 +1,23 @@
+<div class="modal-overlay" id="loginModal" onclick="closeModalOnOverlay(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label class="form-label">이메일</label>
+                <input type="email" class="form-input" id="email" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">비밀번호</label>
+                <input type="password" class="form-input" id="password" required>
+            </div>
+            <div class="form-footer">
+                <a type='button' class="forgot-password" onclick="location.href=`{% url 'uauth:find_password' %}`">비밀번호 찾기</a>
+            </div>
+            <div class="error-message" id="errorMessage"></div>
+            <button type="submit" class="submit-btn" id="submitBtn">로그인</button>
+            <div class="signup-link">
+                회원이 아니신가요? 
+                <a type='button' id='signupBtn' onclick="location.href=`{% url 'uauth:signup' %}`">회원가입 하기</a>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hairstyle is all you need</title>
+    <link rel="icon" href="data:,">
+    {% block style %}
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pictorial_book.css' %}">
+    {% endblock style %}
+    <style>
+        /* 이미지 드래그 방지 */
+        img {
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+            user-drag: none;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+    {% csrf_token%}
+    <main>
+
+        {%block content%}
+
+        {%endblock content%}
+
+    </main>
+    {% block script %}
+
+    {% endblock script %}
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        // 이미지 드래그 방지 (JavaScript)
+        document.addEventListener('DOMContentLoaded', function() {
+            // 모든 이미지에 드래그 방지
+            document.querySelectorAll('img').forEach(function(img) {
+                img.setAttribute('draggable', false);
+                img.addEventListener('dragstart', function(e) {
+                    e.preventDefault();
+                    return false;
+                });
+            });
+            
+            // 우클릭 방지 (선택사항)
+            document.addEventListener('contextmenu', function(e) {
+                if (e.target.tagName === 'IMG') {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
