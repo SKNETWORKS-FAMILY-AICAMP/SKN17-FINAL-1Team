@@ -1,12 +1,21 @@
 import os
+import sys
+import torch
+import base64
 import statistics
 import tensorflow as tf
+import numpy as np
 from PIL import Image
 from io import BytesIO
 import matplotlib.pyplot as plt
 # from model.HairFastGAN.hair_swap import HairFast, get_parser
 from model.IdentiFace.Backend.model_manager import model_manager
 from model.IdentiFace.Backend.functions import Functions
+sys.path.append('model/FaceLift')
+sys.path.append('model/face_parsing')
+sys.path.append('model/SAFMN')
+from model.FaceLift.inference import get_model_paths, initialize_face_detector, initialize_mvdiffusion_pipeline, initialize_gslrm_model, setup_camera_parameters, process_single_image
+from model.utility.face_cropper import FaceCropper
 
 def load_hairfastgan():
     model = HairFast(get_parser().parse_args([]))
@@ -127,3 +136,176 @@ def get_weight(max_value, min_value):
     else:
         weight = abs(max_value)
     return weight
+
+def get_3d(
+    image_file,
+    input_dir: str = './generated_images/',
+    output_dir: str = './3d_results/',
+    auto_crop: bool = True,
+    seed: int = 4,
+    guidance_scale_2D: float = 3.0,
+    step_2D: int = 50,
+    models_3d: dict = None
+) -> None:
+    """
+    Generate 3D reconstruction from image
+
+    Args:
+        image_file: Path to image file
+        input_dir: Input directory
+        output_dir: Output directory
+        auto_crop: Whether to auto crop face
+        seed: Random seed
+        guidance_scale_2D: Guidance scale for 2D generation
+        step_2D: Steps for 2D generation
+        models_3d: Pre-loaded 3D models dict (if None, will load on-the-fly)
+    """
+    # If models are not provided, load them (backward compatibility)
+    if models_3d is None:
+        computation_device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        mvdiffusion_checkpoint_path, gslrm_checkpoint_path, gslrm_config_path = get_model_paths()
+
+        os.makedirs(output_dir, exist_ok=True)
+
+        face_detector = None
+        if auto_crop:
+            face_detector = initialize_face_detector(computation_device)
+
+        diffusion_pipeline, random_generator, color_prompt_embeddings = initialize_mvdiffusion_pipeline(
+            mvdiffusion_checkpoint_path, computation_device
+        )
+        gslrm_model = initialize_gslrm_model(gslrm_checkpoint_path, gslrm_config_path, computation_device)
+        camera_intrinsics_tensor, camera_extrinsics_tensor = setup_camera_parameters(computation_device)
+    else:
+        # Use pre-loaded models
+        face_detector = models_3d['face_detector']
+        diffusion_pipeline = models_3d['diffusion_pipeline']
+        random_generator = models_3d['random_generator']
+        color_prompt_embeddings = models_3d['color_prompt_embeddings']
+        gslrm_model = models_3d['gslrm_model']
+        camera_intrinsics_tensor = models_3d['camera_intrinsics_tensor']
+        camera_extrinsics_tensor = models_3d['camera_extrinsics_tensor']
+        os.makedirs(output_dir, exist_ok=True)
+
+    random_generator.manual_seed(seed)
+
+    process_single_image(
+        image_file,
+        input_dir,
+        output_dir,
+        auto_crop,
+        diffusion_pipeline,
+        random_generator,
+        color_prompt_embeddings,
+        gslrm_model,
+        camera_intrinsics_tensor,
+        camera_extrinsics_tensor,
+        guidance_scale_2D,
+        step_2D,
+        face_detector
+    )
+
+def face_crop(image_file, crop_size=256, face_cropper=None):
+    """
+    Crop and process face from image
+
+    Args:
+        image_file: Path to image file
+        crop_size: Size for face cropping
+        face_cropper: Pre-loaded FaceCropper instance (if None, will load on-the-fly)
+
+    Returns:
+        Face tensor or None if multiple/no faces detected
+    """
+    # If face_cropper is not provided, load it (backward compatibility)
+    if face_cropper is None:
+        faceCropper = FaceCropper(crop_size)
+    else:
+        faceCropper = face_cropper
+
+    image = Image.open(image_file).convert("RGB")
+    image = smart_resize(image)
+
+    detected_bboxs = faceCropper.faceDetector(image, True)
+    numberDetectedFaces = len(detected_bboxs)
+
+    print(f"[DEBUG] face_crop: 감지된 얼굴 수 = {numberDetectedFaces}")
+    print(f"[DEBUG] detected_bboxs = {detected_bboxs}")
+
+    if numberDetectedFaces == 1:
+        face_crop_course, face_bbox_course, lmk68 = faceCropper.detect_face_simple(image)
+        face_crop_refine, face_bbox_refine = faceCropper.refineCrop(face_crop_course, face_bbox_course)
+
+        # Extend crop area vertically for longer hairstyles
+        # face_bbox_refine: [start_y, end_y, start_x, end_x]
+        height = face_bbox_refine[1] - face_bbox_refine[0]
+        width = face_bbox_refine[3] - face_bbox_refine[2]
+
+        # Add extra margin to top and bottom
+        extra_top = int(height * 0.3)
+        extra_bottom = int(height * 0.2)
+
+        new_start_y = max(0, face_bbox_refine[0] - extra_top)
+        new_end_y = min(np.array(image).shape[0], face_bbox_refine[1] + extra_bottom)
+
+        # Re-crop from original image with extended vertical bounds
+        face_crop_refine = np.array(image)[new_start_y:new_end_y, face_bbox_refine[2]:face_bbox_refine[3]]
+
+    else:
+        return None
+
+    face_crop_refine = pad_to_square(face_crop_refine)
+    face_tensor = np.array(face_crop_refine).astype(np.float32) / 255.0
+    face_tensor = torch.from_numpy(np.transpose(face_tensor, (2, 0, 1))).unsqueeze(0)
+
+    face_tensor = torch.nn.functional.interpolate(
+        face_tensor,
+        size=(512, 512),
+        mode="bilinear",
+        align_corners=False
+    )
+
+    return face_tensor
+
+def pad_to_square(img):
+    h, w, _ = img.shape
+    if h == w:
+        return img
+
+    size = max(h, w)
+    padded = np.zeros((size, size, 3), dtype=img.dtype)
+
+    y_offset = (size - h) // 2
+    x_offset = (size - w) // 2
+
+    padded[y_offset:y_offset+h, x_offset:x_offset+w] = img
+    return padded
+
+def smart_resize(image):
+
+  image = np.array(image)
+
+  min_indx = np.argmin((image.shape[0], image.shape[1]))
+  if image.shape[min_indx] > 512:
+
+    dim1 = min(512, image.shape[min_indx])
+    wpercent = image.shape[int(not min_indx)] / image.shape[int(min_indx)]
+    dim2 = int(512 * wpercent)
+
+    if min_indx == 0:
+      image = np.array(Image.fromarray(image).resize((dim2, dim1), Image.LANCZOS, ))
+    else:
+      image = np.array(Image.fromarray(image).resize((dim1, dim2), Image.LANCZOS, ))
+
+  return image
+def encode_image_from_file(file_path):
+    with open(file_path, "rb") as image_file:
+        image_content = image_file.read()
+        file_ext = os.path.splitext(file_path)[1].lower()
+        if file_ext in [".jpg", ".jpeg"]:
+            mime_type = "image/jpeg"
+        elif file_ext == ".png":
+            mime_type = "image/png"
+        else:
+            mime_type = "image/unknown"
+        return f"data:{mime_type};base64,{base64.b64encode(image_content).decode('utf-8')}"
